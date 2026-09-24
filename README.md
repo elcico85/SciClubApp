@@ -32,6 +32,13 @@ Apri l'app pubblicata (vedi sotto per l'URL), inserisci:
 
 Restano salvati solo in locale sul dispositivo (mai nel codice, che è pubblico su GitHub).
 
+**Verifica rapida che il backend sia raggiungibile**: apri in un browser l'URL del passo 2 seguito da `?key=LA_TUA_CHIAVE` (es. `https://script.google.com/macros/s/XXXX/exec?key=1234`).
+- Se vedi un JSON con `abbonamenti` e `utilizzi` → tutto ok.
+- Se vedi `{"error":"unauthorized"}` → la chiave inserita non corrisponde a quella impostata al passo 1.6.
+- Se vedi una pagina di login/permessi Google invece del JSON → il deployment al passo 2.3 non è impostato su "Chiunque": rifai il deployment controllando quel campo.
+
+Se questo test funziona ma l'app continua a segnare "Offline", il problema non è la configurazione: fammelo sapere.
+
 ## 4. Icone
 
 Le icone in `webapp/icons/` sono segnaposto (un quadrato blu pieno). Sostituiscile con il logo dello sci club quando disponibile, mantenendo gli stessi nomi file (`icon-192.png`, `icon-512.png`).

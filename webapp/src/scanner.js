@@ -19,10 +19,21 @@
     stop();
     const hints = new Map();
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, supportedFormats());
+    // TRY_HARDER: passaggi di decodifica più approfonditi, necessari per un
+    // codice piccolo e stampato come quello sul retro della Tessera Sanitaria
+    // (a differenza di un QR grande, con la scansione "rapida" spesso non basta).
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
     const reader = new ZXing.BrowserMultiFormatReader(hints);
     let detected = false;
+    const constraints = {
+      video: {
+        facingMode: 'environment',
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+      },
+    };
     try {
-      controls = await reader.decodeFromVideoDevice(undefined, videoElement, (result) => {
+      controls = await reader.decodeFromConstraints(constraints, videoElement, (result) => {
         if (result && !detected) {
           detected = true;
           onDetect(extractCodiceFiscale(result.getText()));

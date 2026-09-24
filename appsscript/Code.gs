@@ -62,21 +62,38 @@ function readSheetAsObjects_(sheet) {
     });
 }
 
-function jsonOutput_(obj) {
+// Apps Script Web App non manda gli header CORS richiesti da fetch() per leggere
+// la risposta da un'altra origine (il sito su GitHub Pages), quindi il frontend
+// chiama tutto - anche le scritture - in JSONP (un tag <script>, non soggetto a
+// CORS): se arriva ?callback=..., la risposta è avvolta in quella funzione JS
+// invece di essere JSON puro.
+function output_(obj, callbackName) {
+  if (callbackName) {
+    var js = callbackName + '(' + JSON.stringify(obj) + ');';
+    return ContentService.createTextOutput(js).setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doGet(e) {
+  var callback = e.parameter.callback;
   try {
     if (!e.parameter.key || e.parameter.key !== getSecret_()) {
-      return jsonOutput_({ error: 'unauthorized' });
+      return output_({ error: 'unauthorized' }, callback);
     }
-    if (e.parameter.action === 'ping') {
-      return jsonOutput_({ ok: true, serverTime: new Date().toISOString() });
+    var action = e.parameter.action;
+    if (action === 'ping') {
+      return output_({ ok: true, serverTime: new Date().toISOString() }, callback);
     }
-    return jsonOutput_(buildSnapshot_());
+    if (action === 'consumo') {
+      return output_(handleConsumo_(JSON.parse(e.parameter.payload)), callback);
+    }
+    if (action === 'nuovoAbbonamento') {
+      return output_(handleNuovoAbbonamento_(JSON.parse(e.parameter.payload)), callback);
+    }
+    return output_(buildSnapshot_(), callback);
   } catch (err) {
-    return jsonOutput_({ error: String(err) });
+    return output_({ error: String(err) }, callback);
   }
 }
 
@@ -87,20 +104,6 @@ function buildSnapshot_() {
     stagioneCorrente: stagioneCorrente_(),
     serverTime: new Date().toISOString(),
   };
-}
-
-function doPost(e) {
-  try {
-    var data = JSON.parse(e.postData.contents);
-    if (!data.key || data.key !== getSecret_()) {
-      return jsonOutput_({ error: 'unauthorized' });
-    }
-    if (data.type === 'consumo') return jsonOutput_(handleConsumo_(data.payload));
-    if (data.type === 'nuovoAbbonamento') return jsonOutput_(handleNuovoAbbonamento_(data.payload));
-    return jsonOutput_({ error: 'tipo operazione sconosciuto: ' + data.type });
-  } catch (err) {
-    return jsonOutput_({ error: String(err) });
-  }
 }
 
 /** ID generato lato client: funge anche da chiave di deduplicazione se la richiesta arriva due volte. */

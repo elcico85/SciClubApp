@@ -1,6 +1,14 @@
 // Client verso il backend Google Apps Script legato al foglio Google.
+//
+// Apps Script Web App non risponde con gli header CORS (Access-Control-Allow-Origin)
+// necessari a fetch() per leggere la risposta da un'origine diversa (il nostro sito
+// su GitHub Pages): ogni chiamata, quindi, passa tramite JSONP (un tag <script>
+// iniettato dinamicamente), che non è soggetto a CORS. Per questo anche le scritture
+// (consumo, nuovoAbbonamento) sono richieste GET con i dati nella query string invece
+// che POST con body JSON.
 (function () {
   const CONFIG_KEY = 'sciclub-config'; // { url, secret }
+  let jsonpCounter = 0;
 
   function getConfig() {
     try {
@@ -40,14 +48,50 @@
     };
   }
 
+  function jsonpRequest(url, timeoutMs) {
+    return new Promise((resolve, reject) => {
+      const callbackName = `sciclubJsonp${Date.now()}_${jsonpCounter++}`;
+      const script = document.createElement('script');
+      let done = false;
+      let timer = null;
+
+      function cleanup() {
+        delete window[callbackName];
+        script.remove();
+        if (timer) clearTimeout(timer);
+      }
+
+      window[callbackName] = (data) => {
+        if (done) return;
+        done = true;
+        cleanup();
+        resolve(data);
+      };
+
+      timer = setTimeout(() => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error('timeout'));
+      }, timeoutMs || 15000);
+
+      script.onerror = () => {
+        if (done) return;
+        done = true;
+        cleanup();
+        reject(new Error('errore di rete'));
+      };
+      script.src = `${url}&callback=${callbackName}`;
+      document.head.appendChild(script);
+    });
+  }
+
   // Un GET leggero, senza scaricare tutto il foglio, solo per sapere se il backend risponde.
   async function ping() {
     const cfg = getConfig();
     if (!cfg) throw new Error('non configurato');
     const url = `${cfg.url}?key=${encodeURIComponent(cfg.secret)}&action=ping`;
-    const res = await fetch(url, { method: 'GET', cache: 'no-store' });
-    if (!res.ok) return false;
-    const data = await res.json();
+    const data = await jsonpRequest(url);
     return !data.error;
   }
 
@@ -55,24 +99,19 @@
     const cfg = getConfig();
     if (!cfg) throw new Error('non configurato');
     const url = `${cfg.url}?key=${encodeURIComponent(cfg.secret)}`;
-    const res = await fetch(url, { method: 'GET', cache: 'no-store' });
-    const data = await res.json();
+    const data = await jsonpRequest(url);
     if (data.error) throw new Error(data.error);
     return data;
   }
 
-  // Content-Type text/plain per evitare la preflight CORS: Apps Script non gestisce
-  // le richieste OPTIONS, quindi una richiesta "semplice" è l'unico modo per chiamarlo
-  // da un'origine diversa (il nostro sito su GitHub Pages).
   async function pushOperation(op) {
     const cfg = getConfig();
     if (!cfg) throw new Error('non configurato');
-    const res = await fetch(cfg.url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ key: cfg.secret, type: op.type, payload: op.payload }),
-    });
-    return res.json();
+    const url =
+      `${cfg.url}?key=${encodeURIComponent(cfg.secret)}` +
+      `&action=${encodeURIComponent(op.type)}` +
+      `&payload=${encodeURIComponent(JSON.stringify(op.payload))}`;
+    return jsonpRequest(url);
   }
 
   window.Api = {
