@@ -1,4 +1,4 @@
-# Sci club - abbonamenti pullman
+# Sci Club Maserada - abbonamenti pullman
 
 App PWA offline-first per gestire gli abbonamenti ai viaggi in pullman dello sci club:
 - **5 viaggi personale**, **1 viaggio famiglia (3 persone)**, **1 viaggio famiglia (4 persone)**
@@ -26,11 +26,10 @@ Se in futuro modifichi `Code.gs`, ricordati di creare un **nuovo deployment** (o
 
 ## 3. Configurare l'app al primo avvio
 
-Apri l'app pubblicata (vedi sotto per l'URL), inserisci:
-- **Indirizzo Apps Script**: l'URL `/exec` del passo 2
+L'indirizzo dell'Apps Script è già incorporato nel codice (vedi [`webapp/src/config.js`](webapp/src/config.js) — non è un segreto: senza la chiave/PIN nessuna richiesta viene accettata). Ogni operatore, al primo avvio su un nuovo dispositivo, deve solo inserire:
 - **Chiave/PIN**: quella impostata al passo 1.6
 
-Restano salvati solo in locale sul dispositivo (mai nel codice, che è pubblico su GitHub).
+Resta salvata solo in locale sul dispositivo, mai nel codice pubblico. Se in futuro cambi deployment (nuovo progetto Apps Script o nuovo account Google), aggiorna l'URL in `webapp/src/config.js`: gli operatori continueranno a dover inserire solo il PIN.
 
 **Verifica rapida che il backend sia raggiungibile**: apri in un browser l'URL del passo 2 seguito da `?key=LA_TUA_CHIAVE` (es. `https://script.google.com/macros/s/XXXX/exec?key=1234`).
 - Se vedi un JSON con `abbonamenti` e `utilizzi` → tutto ok.
@@ -41,7 +40,7 @@ Se questo test funziona ma l'app continua a segnare "Offline", il problema non �
 
 ## 4. Icone
 
-Le icone in `webapp/icons/` sono segnaposto (un quadrato blu pieno). Sostituiscile con il logo dello sci club quando disponibile, mantenendo gli stessi nomi file (`icon-192.png`, `icon-512.png`).
+Le icone in `webapp/icons/` sono generate dal logo ufficiale dello Sci Club Maserada. Per aggiornarle in futuro, sostituisci i file mantenendo gli stessi nomi (`icon-192.png`, `icon-512.png`, entrambi quadrati).
 
 ## 5. Sviluppo locale
 

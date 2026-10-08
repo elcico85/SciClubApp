@@ -4,8 +4,9 @@
   --border: #ddd9cf;
   --text: #2c2c2a;
   --text-muted: #5f5e5a;
-  --accent: #185fa5;
-  --accent-text: #042c53;
+  --accent: #683090;
+  --accent-bg: #ece0f5;
+  --accent-text: #45206b;
   --success-bg: #eaf3de;
   --success-text: #27500a;
   --danger-bg: #fcebeb;
@@ -144,7 +145,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: #e6f1fb;
+  background: var(--accent-bg);
   color: var(--accent-text);
   display: flex;
   align-items: center;

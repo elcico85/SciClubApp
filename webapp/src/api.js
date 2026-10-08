@@ -10,17 +10,33 @@
   const CONFIG_KEY = 'sciclub-config'; // { url, secret }
   let jsonpCounter = 0;
 
+  function builtInUrl() {
+    const url = window.AppConfig && window.AppConfig.APPS_SCRIPT_URL;
+    return url && !url.includes('INSERIRE_URL_DEPLOYMENT') ? url : null;
+  }
+
+  // Se il codice ha già l'URL del deployment incorporato, all'operatore serve
+  // inserire solo la chiave/PIN. In assenza (es. sviluppo locale prima di
+  // configurarlo), l'app chiede anche l'URL, come schermata di ripiego.
+  function needsUrlPrompt() {
+    return !builtInUrl();
+  }
+
   function getConfig() {
     try {
       const raw = localStorage.getItem(CONFIG_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const stored = raw ? JSON.parse(raw) : null;
+      const url = builtInUrl() || (stored && stored.url);
+      const secret = stored && stored.secret;
+      if (!url || !secret) return null;
+      return { url, secret };
     } catch (e) {
       return null;
     }
   }
 
   function setConfig(cfg) {
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+    localStorage.setItem(CONFIG_KEY, JSON.stringify({ url: cfg.url, secret: cfg.secret }));
   }
 
   function clearConfig() {
@@ -118,6 +134,8 @@
     getConfig,
     setConfig,
     clearConfig,
+    needsUrlPrompt,
+    builtInUrl,
     ping,
     fetchSnapshot,
     pushOperation,

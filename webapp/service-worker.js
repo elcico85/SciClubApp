@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sciclub-v2';
+const CACHE_NAME = 'sciclub-v3';
 
 const PRECACHE_URLS = [
   './',
@@ -8,6 +8,7 @@ const PRECACHE_URLS = [
   './vendor/idb-keyval.min.js',
   './vendor/zxing.min.js',
   './vendor/qrcode.min.js',
+  './src/config.js',
   './src/util.js',
   './src/store.js',
   './src/api.js',
