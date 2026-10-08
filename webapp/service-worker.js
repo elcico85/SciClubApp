@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sciclub-v3';
+const CACHE_NAME = 'sciclub-v4';
 
 const PRECACHE_URLS = [
   './',

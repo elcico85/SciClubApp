@@ -32,8 +32,13 @@
       ctx.navigate('result', { abbonamento: ab });
     }
 
-    ctx.Scanner.start(video, goToResult, () => {
-      hintEl.textContent = 'Fotocamera non disponibile: usa la ricerca manuale qui sotto.';
+    ctx.Scanner.start(video, goToResult, (err) => {
+      const motivo = err && err.name ? ` (${err.name})` : '';
+      hintEl.textContent = `Fotocamera non disponibile${motivo}: usa la ricerca manuale qui sotto.`;
+    }).then(() => {
+      if (ctx.Scanner.engine) {
+        hintEl.textContent = `Inquadra il QR club o la tessera sanitaria (lettore: ${ctx.Scanner.engine})`;
+      }
     });
 
     container.querySelector('#home-new').addEventListener('click', () => {
